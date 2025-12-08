@@ -1,0 +1,147 @@
+#SAVING FRAMES
+import cv2  # cv2: Imports OpenCV, a powerful library for image and video processing
+import os
+
+# Path to your video file
+video_path = "/content/Devasena.mp4" 
+# Folder to save extracted frames
+output_folder = "frames"
+
+# Create the folder if it doesn't exist
+os.makedirs(output_folder, exist_ok=True)
+
+# Load the video
+cap = cv2.VideoCapture(video_path)
+
+# Check if video opened successfully
+if not cap.isOpened():
+    print("Error: Could not open video.")
+    exit()
+
+frame_count = 0
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break   # End of video
+
+    # Save frame as image
+    frame_filename = os.path.join(output_folder, f"frame_{frame_count:03d}.jpg")
+    cv2.imwrite(frame_filename, frame)
+    print(f"Saved {frame_filename}")
+    frame_count += 1
+
+# Release resources
+cap.release()
+cv2.destroyAllWindows()
+
+#SAVING N NUMBER OF FRAMES
+import cv2  
+import os
+
+# Path to your video file
+video_path = "/content/Devasena.mp4" 
+
+# Folder to save extracted frames
+output_folder = "frames"
+
+# Create the folder if it doesn't exist
+os.makedirs(output_folder, exist_ok=True)
+
+# Load the video
+cap = cv2.VideoCapture(video_path)
+
+# Check if video opened successfully
+if not cap.isOpened():
+    print("Error: Could not open video.")
+    exit()
+
+frame_count = 0        # ✅ MUST start from 0
+max_frames = 10        # ✅ SET HOW MANY FRAMES YOU WANT
+
+while frame_count < max_frames:   # ✅ Correct condition
+    ret, frame = cap.read()
+    if not ret:
+        break   # End of video
+
+    # Save frame as image
+    frame_filename = os.path.join(output_folder, f"frame_{frame_count:03d}.jpg")
+    cv2.imwrite(frame_filename, frame)
+    print(f"Saved {frame_filename}")
+
+    frame_count += 1
+
+# Release resources
+cap.release()
+cv2.destroyAllWindows()
+
+#DISPLAY OF FRAMES
+  for file in sorted(os.listdir(folder_path)):
+    file_path = os.path.join(folder_path, file)
+    img = Image.open(file_path)
+    display(img)
+
+
+#DISPLAY OF N NUMBER OF FRAMES
+from PIL import Image
+from IPython.display import display
+import os   # ✅ Make sure to import os
+
+# Folder where your frames are stored
+folder_path = "frames"
+
+# Number of frames to display
+N = 5  
+
+for file in sorted(os.listdir(folder_path))[:N]:
+    file_path = os.path.join(folder_path, file)
+    img = Image.open(file_path)
+    display(img)
+
+
+#DISPLAY THE FRAMES IN GRID
+from IPython.display import display, HTML
+from PIL import Image
+import os
+import io
+import base64
+
+folder_path = "frames"  # Your frames folder
+N = 6  # Number of frames to display in a grid
+
+html_str = ""
+
+files = sorted(os.listdir(folder_path))[:N]
+
+for file in files:
+    file_path = os.path.join(folder_path, file)
+    
+    # Open image and convert to base64
+    with open(file_path, "rb") as f:
+        img_bytes = f.read()
+    encoded = base64.b64encode(img_bytes).decode()
+    
+    # Add image to HTML string
+    html_str += f'<img src="data:image/jpeg;base64,{encoded}" width="200" style="margin:5px;">'
+
+# Display all images in a row
+display(HTML(html_str))
+
+
+#BLUR IMAGE
+  from PIL import Image, ImageFilter
+import matplotlib.pyplot as plt
+
+# Local path to your uploaded image in Colab
+image_path = "/content/Screenshot 2025-06-13 141822.png"  # Change this if needed
+
+# Open the image
+im = Image.open(image_path).convert("RGB")
+
+# Apply Box Blur
+im_blur = im.filter(ImageFilter.BoxBlur(40))
+
+# Display the blurred image
+plt.imshow(im_blur)
+plt.title("Blurred Image")
+plt.axis('off')
+plt.show()
