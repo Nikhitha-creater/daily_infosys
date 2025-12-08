@@ -1,0 +1,60 @@
+from google.colab import files
+uploaded = files.upload()
+
+  import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
+  df = pd.read_csv("Experience-Salary.csv")
+
+# Show first 5 rows
+df.head()
+
+  # lets change the columns name for convinence
+df.rename(columns={"exp(in months)":"experience", 
+                   "salary(in thousands)":"salary"},inplace=True)
+df.info()
+
+  # some basic idea about the data
+df.describe()
+
+  input = df.iloc[:,:-1]  # independent feature
+target = df.iloc[:,-1]  # dependent feature
+#spliting the dataset into training and testing
+
+X_train, X_test, y_train, y_test = train_test_split(input, target, test_size=0.3, random_state=42)
+# linear regression model
+
+model = LinearRegression()
+# train the model 
+model.fit(X_train,y_train)
+
+  # make prediction from the model
+y_pred = model.predict(X_test)
+# visualizing the best fit line/regression line 
+
+plt.figure(figsize=(12,6))  # size of graph
+
+sns.scatterplot(x=X_train['experience'],y=y_train)  # scatter plot
+plt.plot(X_test,y_pred,c='red')   # line plot
+plt.xlabel("Experience")
+plt.ylabel("Salary")
+plt.title("Regression Plot")
+plt.show()
+
+  # evaluating metrics of the model 
+
+print("R-Square error of the model: ", r2_score(y_test,y_pred))
+print("Mean absolute error of the model: ", mean_absolute_error(y_test,y_pred))
+print("Mean Squared error of the model: ", mean_squared_error(y_test,y_pred))
+
+
+  model.coef_  # coefficient of the independent feature or slope
+
+
+  model.intercept_   # intercept
