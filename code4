@@ -1,0 +1,81 @@
+
+# Install required Python libraries quietly:
+# - vosk: offline speech recognition engine
+# - gTTS: Google Text-to-Speech API
+# - faster-whisper: optimized Whisper speech-to-text model
+# - pydub: audio manipulation utilities
+# - soundfile: audio I/O operations
+# - sentencepiece: tokenizer used by various NLP models
+! pip install -q vosk gTTS faster-whisper pydub soundfile sentencepiece
+
+# Install ffmpeg (system-level dependency) for audio processing and format conversions
+! apt -qq install -y ffmpeg
+
+
+from google.colab import files
+from gtts import gTTS
+from IPython.display import Audio
+import os, wave, json, subprocess
+
+     
+
+# Prompt user to upload an audio file; fall back to generating a sample TTS clip
+print("Upload audio file: ")
+up = files.upload()
+
+if up:
+    # Extract the uploaded filename
+    audio = list(up.keys())[0]
+else:
+    # If no file is uploaded, generate a default audio sample
+    tts = gTTS("Hello this is a test audio")
+    audio = "sample.mp3"
+    tts.save(audio)
+
+# Convert input audio to a 16kHz mono WAV file, required by both Vosk and Whisper
+wav = 'audio.wav'
+subprocess.run(
+    ['ffmpeg', '-y', '-i', audio, '-ar', '16000', '-ac', '1', wav],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL
+)
+# Download and prepare the Vosk model if not already available
+if not os.path.exists("vosk-model"):
+    !wget -q https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip -O model.zip
+    !unzip -q model.zip
+    !mv vosk-model-small-en-us-0.15 vosk-model
+    !rm model.zip
+
+# Initialize Vosk speech recognizer
+from vosk import Model, KaldiRecognizer
+wf = wave.open(wav, 'rb')
+rec = KaldiRecognizer(Model("vosk-model"), wf.getframerate())
+
+# Stream audio frames into the recognizer and aggregate partial results
+vosk_text = ""
+while True:
+    data = wf.readframes(4000)
+    if not data:
+        break
+    if rec.AcceptWaveform(data):
+        vosk_text += json.loads(rec.Result()).get("text", " ") + " "
+
+# Append final recognition result
+vosk_text += json.loads(rec.FinalResult()).get("text", " ")
+
+print("\n VOSK: \n", vosk_text.strip())
+
+# Initialize Faster-Whisper model (GPU if available, else CPU)
+import torch
+from faster_whisper import WhisperModel
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+wmodel = WhisperModel('small', device=device)
+# Run transcription and concatenate segment outputs
+segments, _ = wmodel.transcribe(wav)
+whisper_text = " ".join([s.text for s in segments]).strip()
+
+print("\n Whisper: \n", whisper_text)
+
+
+  
