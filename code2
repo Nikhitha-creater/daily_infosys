@@ -1,0 +1,68 @@
+#video audio to audio
+
+# Install required libraries (if not already installed)
+!pip install librosa
+!pip install matplotlib
+!pip install moviepy
+
+# ------------------------------------------------------------
+# Import libraries
+# ------------------------------------------------------------
+import librosa
+import librosa.display
+import matplotlib.pyplot as plt
+import numpy as np
+from moviepy.editor import VideoFileClip
+from google.colab import files
+
+# ------------------------------------------------------------
+# Upload your video file
+# ------------------------------------------------------------
+uploaded = files.upload()  # Choose your video file (e.g., video.mp4)
+
+# Get the uploaded video filename
+video_path = list(uploaded.keys())[0]
+
+# ------------------------------------------------------------
+# Extract audio from video using MoviePy
+# ------------------------------------------------------------
+video_clip = VideoFileClip(video_path)
+audio_path = "temp_audio.wav"
+video_clip.audio.write_audiofile(audio_path)
+
+# ------------------------------------------------------------
+# Load the audio using librosa
+# ------------------------------------------------------------
+audio, sr = librosa.load(audio_path)
+
+# ------------------------------------------------------------
+# Compute amplitude envelope
+# ------------------------------------------------------------
+amplitude = np.abs(audio)
+
+# ------------------------------------------------------------
+# Compute STFT
+# ------------------------------------------------------------
+n_fft = 2048
+hop_length = 512
+stft = np.abs(librosa.stft(audio, n_fft=n_fft, hop_length=hop_length))
+
+# ------------------------------------------------------------
+# Plot amplitude vs time
+# ------------------------------------------------------------
+plt.figure(figsize=(12, 4))
+plt.plot(np.arange(len(audio)) / sr, amplitude)
+plt.xlabel("Time (s)")
+plt.ylabel("Amplitude")
+plt.title("Amplitude over Time")
+plt.show()
+
+# ------------------------------------------------------------
+# Plot spectrogram in decibels
+# ------------------------------------------------------------
+S_db = librosa.amplitude_to_db(stft, ref=np.max)
+plt.figure(figsize=(12, 6))
+librosa.display.specshow(S_db, sr=sr, hop_length=hop_length, x_axis='time', y_axis='hz')
+plt.colorbar(format="%+2.0f dB")
+plt.title("Spectrogram (dB)")
+plt.show()
